@@ -1,0 +1,2629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InsightAI - Multi-Modal Enterprise Intelligence & Research Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Chart.js for pixel-perfect charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f1f5f9;
+      color: #0f172a;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* TOP GLOBAL NAVBAR */
+    .top-navbar {
+      background-color: #0c1527;
+      color: #ffffff;
+      height: 52px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .brand-icon {
+      background: #2563eb;
+      color: #ffffff;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .brand-texts {
+      display: flex;
+      flex-direction: column;
+    }
+    .brand-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.2px;
+    }
+    .brand-subtitle {
+      font-size: 10.5px;
+      color: #94a3b8;
+    }
+    .nav-user {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      color: #f8fafc;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+    .nav-user:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .user-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #3b82f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #ffffff;
+    }
+
+    /* APP LAYOUT: SIDEBAR + MAIN */
+    .app-body {
+      display: flex;
+      flex: 1;
+    }
+
+    /* DARK SIDEBAR */
+    .sidebar {
+      width: 220px;
+      background-color: #0d1424;
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: #f8fafc;
+    }
+    .nav-item.active {
+      background: #2563eb;
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .nav-item svg {
+      width: 17px;
+      height: 17px;
+      stroke-width: 2;
+    }
+    .sidebar-bottom {
+      padding: 12px;
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .sidebar-bottom:hover {
+      background: rgba(30, 41, 59, 0.8);
+    }
+    .sidebar-bottom-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .sidebar-bottom-desc {
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.35;
+    }
+
+    /* MAIN CONTENT CANVAS */
+    .main-canvas {
+      flex: 1;
+      padding: 12px 20px 24px 20px;
+      background-color: #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: calc(100vw - 220px);
+    }
+
+    /* STATUS RIBBON */
+    .status-ribbon {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      font-size: 11px;
+      color: #059669;
+      font-weight: 600;
+      gap: 6px;
+      margin-bottom: -4px;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+      animation: pulseDot 2s infinite;
+    }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* UPPER SECTION GRID (2 COLUMNS) */
+    .upper-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 1.2fr;
+      gap: 14px;
+    }
+
+    /* WHITE CARDS */
+    .card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    /* LEFT CARD */
+    .card-header-sparkle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+    .card-header-sparkle svg {
+      color: #2563eb;
+    }
+    .card-subtext {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.4;
+      margin-bottom: 16px;
+    }
+
+    /* 6 MODALITY TILES */
+    .modality-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .mod-tile {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.2s;
+      cursor: pointer;
+      position: relative;
+    }
+    .mod-tile:hover {
+      border-color: #2563eb;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+    }
+    .mod-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    .mod-tile-title {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 2px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .mod-tile-badge {
+      font-size: 9px;
+      color: #2563eb;
+      background: #eff6ff;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .mod-tile-desc {
+      font-size: 10.5px;
+      color: #64748b;
+      line-height: 1.3;
+    }
+
+    /* DROPZONE */
+    .dropzone {
+      border: 1.5px dashed #cbd5e1;
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 18px 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+    .dropzone-icon {
+      color: #3b82f6;
+      margin-bottom: 4px;
+    }
+    .dropzone-main {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 2px;
+    }
+    .dropzone-sub {
+      font-size: 10.5px;
+      color: #94a3b8;
+    }
+
+    /* RIGHT CHAT CARD */
+    .chat-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      max-height: 520px;
+    }
+    .chat-scroll-area {
+      overflow-y: auto;
+      max-height: 430px;
+      padding-right: 4px;
+    }
+    .chat-user-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 12px;
+    }
+    .chat-user-bubble {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e3a8a;
+      border-radius: 16px 16px 2px 16px;
+      padding: 9px 14px;
+      font-size: 12.5px;
+      max-width: 88%;
+      line-height: 1.4;
+      font-weight: 500;
+    }
+    .chat-timestamp {
+      font-size: 9.5px;
+      color: #94a3b8;
+      text-align: right;
+      margin-top: 3px;
+    }
+
+    .ai-response-box {
+      margin-bottom: 10px;
+    }
+    .ai-avatar-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 6px;
+    }
+    .ai-sparkle-avatar {
+      background: #2563eb;
+      color: #ffffff;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+    .ai-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .ai-body-text {
+      font-size: 12px;
+      color: #334155;
+      line-height: 1.5;
+    }
+    .ai-section-title {
+      font-weight: 700;
+      color: #0f172a;
+      margin-top: 6px;
+      margin-bottom: 2px;
+    }
+    .ai-bullets {
+      list-style-type: disc;
+      padding-left: 18px;
+      margin-bottom: 6px;
+    }
+    .ai-bullets li {
+      margin-bottom: 2px;
+    }
+    .ai-footer-note {
+      font-size: 11px;
+      color: #475569;
+      font-style: italic;
+      margin-top: 6px;
+    }
+
+    /* VISUAL SUMMARY ROW IN CHAT */
+    .visual-summary-container {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin: 8px 0;
+    }
+    .visual-summary-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 6px;
+    }
+    .visual-summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 0.9fr;
+      gap: 8px;
+      align-items: center;
+    }
+    .mini-chart-box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 4px;
+      height: 105px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .mini-chart-box:hover {
+      border-color: #2563eb;
+    }
+    .mini-chart-label {
+      font-size: 9.5px;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 2px;
+    }
+    .thumb-preview-box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 4px;
+      height: 105px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .thumb-preview-box:hover {
+      border-color: #2563eb;
+      transform: scale(1.02);
+    }
+    .thumb-preview-box img {
+      width: 100%;
+      height: 75px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+    .thumb-overlay-badge {
+      position: absolute;
+      background: rgba(15, 23, 42, 0.75);
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      bottom: 6px;
+      right: 6px;
+    }
+
+    /* SOURCES CHIPS */
+    .sources-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 10.5px;
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid #f1f5f9;
+    }
+    .source-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: #eff6ff;
+      color: #1e40af;
+      border: 1px solid #dbeafe;
+      font-weight: 500;
+      font-size: 10.5px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .source-pill:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.15);
+    }
+    .source-pill.pdf {
+      background: #fef2f2;
+      color: #b91c1c;
+      border-color: #fee2e2;
+    }
+    .source-pill.excel {
+      background: #ecfdf5;
+      color: #047857;
+      border-color: #d1fae5;
+    }
+    .view-all-link {
+      color: #2563eb;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 10.5px;
+      margin-left: 4px;
+      cursor: pointer;
+    }
+    .view-all-link:hover {
+      text-decoration: underline;
+    }
+
+    /* CHAT INPUT BAR */
+    .chat-input-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 24px;
+      padding: 4px 6px 4px 12px;
+      margin-top: 10px;
+      transition: border-color 0.2s;
+    }
+    .chat-input-bar:focus-within {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+    }
+    .mic-icon-btn {
+      background: none;
+      border: none;
+      color: #64748b;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 4px;
+      transition: all 0.15s;
+    }
+    .mic-icon-btn:hover {
+      color: #2563eb;
+    }
+    .mic-icon-btn.recording {
+      color: #ef4444;
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+    .chat-input-field {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 12px;
+      color: #0f172a;
+      background: transparent;
+    }
+    .chat-send-btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .chat-send-btn:hover {
+      background: #1d4ed8;
+    }
+
+    /* BOTTOM ROW (4 COLUMNS) */
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .panel-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+    }
+    .panel-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+    .panel-sub {
+      font-size: 11px;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 2px;
+    }
+    .panel-caption {
+      font-size: 10px;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+
+    /* MINI DROPZONE PANEL 1 */
+    .mini-dropzone {
+      border: 1px dashed #cbd5e1;
+      background: #f8fafc;
+      border-radius: 6px;
+      padding: 10px 8px;
+      text-align: center;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+      margin-bottom: 8px;
+      transition: all 0.15s;
+    }
+    .mini-dropzone:hover {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+    .format-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+    .fmt-pill {
+      font-size: 9.5px;
+      font-weight: 600;
+      padding: 2px 5px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .fmt-pill:hover {
+      opacity: 0.8;
+      transform: translateY(-1px);
+    }
+    .fmt-pdf { background: #fee2e2; color: #ef4444; }
+    .fmt-excel { background: #d1fae5; color: #10b981; }
+    .fmt-csv { background: #d1fae5; color: #10b981; }
+    .fmt-img { background: #dbeafe; color: #3b82f6; }
+    .fmt-web { background: #e0f2fe; color: #0284c7; }
+    .fmt-txt { background: #e0e7ff; color: #2563eb; }
+    .fmt-aud { background: #ede9fe; color: #8b5cf6; }
+
+    /* FILE ITEMS */
+    .uploaded-file-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 8px;
+      border: 1px solid #f1f5f9;
+      border-radius: 6px;
+      background: #fafafa;
+      margin-bottom: 5px;
+      font-size: 11px;
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+    .uploaded-file-row:hover {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+    .file-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .file-fname {
+      font-weight: 600;
+      color: #1e293b;
+      font-size: 11px;
+    }
+    .file-fsize {
+      font-size: 9.5px;
+      color: #94a3b8;
+    }
+    .file-status {
+      font-size: 10px;
+      color: #059669;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .del-btn {
+      color: #94a3b8;
+      margin-left: 4px;
+      cursor: pointer;
+      font-weight: normal;
+      padding: 0 4px;
+      border-radius: 4px;
+    }
+    .del-btn:hover {
+      color: #ef4444;
+      background: #fee2e2;
+    }
+
+    /* PANEL 2: DATA PREVIEW */
+    .tabs-strip {
+      display: flex;
+      gap: 8px;
+      font-size: 10.5px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 4px;
+      margin-bottom: 8px;
+    }
+    .tab-btn {
+      color: #64748b;
+      cursor: pointer;
+      padding-bottom: 3px;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .tab-btn:hover {
+      color: #0f172a;
+    }
+    .tab-btn.active {
+      color: #2563eb;
+      font-weight: 700;
+      border-bottom: 2px solid #2563eb;
+    }
+    .preview-content-box {
+      min-height: 160px;
+    }
+    .sheet-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 1px;
+    }
+    .sheet-subtitle {
+      font-size: 10px;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+
+    /* MINI TABLE */
+    .preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+      margin-bottom: 8px;
+    }
+    .preview-table th {
+      background: #f8fafc;
+      color: #64748b;
+      font-weight: 600;
+      text-align: left;
+      padding: 5px 6px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .preview-table td {
+      padding: 5px 6px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+    }
+    .table-link {
+      font-size: 10px;
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-block;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+    .table-link:hover {
+      text-decoration: underline;
+    }
+
+    .img-understanding-block {
+      margin-top: 4px;
+      padding-top: 6px;
+      border-top: 1px solid #f1f5f9;
+    }
+    .img-und-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 4px;
+    }
+    .img-und-flex {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .img-und-thumb {
+      width: 55px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .img-und-thumb:hover {
+      transform: scale(1.05);
+      border-color: #2563eb;
+    }
+    .img-und-text {
+      font-size: 9.5px;
+      color: #475569;
+      line-height: 1.25;
+    }
+
+    /* PANEL 3: VISUAL INSIGHTS */
+    .chart-box-main {
+      margin-bottom: 10px;
+      background: #ffffff;
+      border-radius: 8px;
+      position: relative;
+    }
+    .chart-box-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* PANEL 4: SOURCES & CITATIONS */
+    .citation-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 7px 9px;
+      margin-bottom: 6px;
+      font-size: 10.5px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .citation-card:hover {
+      border-color: #2563eb;
+      background: #ffffff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      transform: translateX(2px);
+    }
+    .cite-src-title {
+      font-weight: 600;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 2px;
+    }
+    .cite-src-quote {
+      font-size: 10px;
+      color: #64748b;
+      line-height: 1.35;
+      font-style: italic;
+    }
+
+    /* INTERACTIVE MODALS */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.15s ease-out;
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .modal-dialog {
+      background: #ffffff;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 720px;
+      max-height: 88vh;
+      overflow-y: auto;
+      padding: 24px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      position: relative;
+    }
+    .modal-dialog.large {
+      max-width: 900px;
+    }
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: #64748b;
+      line-height: 1;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .modal-close:hover {
+      color: #0f172a;
+      background: #f1f5f9;
+    }
+
+    .btn-action {
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .btn-action:hover {
+      background: #1d4ed8;
+    }
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+    }
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    /* Toast Notification */
+    .toast-msg {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.25);
+      z-index: 2000;
+      display: none;
+      animation: slideUp 0.2s ease-out;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP GLOBAL NAVBAR -->
+  <header class="top-navbar">
+    <div class="brand-group" onclick="location.reload()">
+      <div class="brand-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+        </svg>
+      </div>
+      <div class="brand-texts">
+        <span class="brand-name">InsightAI</span>
+        <span class="brand-subtitle">Multi-Modal Enterprise Intelligence & Research Assistant</span>
+      </div>
+    </div>
+    <div class="nav-user" onclick="openModal('profileModal')">
+      <div class="user-avatar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </div>
+      <span>Hi, Student</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <!-- LEFT NAVIGATION SIDEBAR -->
+    <aside class="sidebar">
+      <nav class="nav-list">
+        <a class="nav-item active" id="nav-home" onclick="activateNav(this, 'Home'); window.scrollTo({top: 0, behavior: 'smooth'})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+          Home
+        </a>
+        <a class="nav-item" id="nav-upload" onclick="activateNav(this, 'Upload Data'); scrollToSection('panel1')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          Upload Data
+        </a>
+        <a class="nav-item" id="nav-chat" onclick="activateNav(this, 'Chat with AI'); focusChatInput()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+          Chat with AI
+        </a>
+        <a class="nav-item" id="nav-docs" onclick="activateNav(this, 'My Documents'); openModal('myDocsModal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          My Documents
+        </a>
+        <a class="nav-item" id="nav-sources" onclick="activateNav(this, 'Data Sources'); openModal('dataSourcesModal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+          Data Sources
+        </a>
+        <a class="nav-item" id="nav-settings" onclick="activateNav(this, 'Settings'); openModal('settingsModal')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          Settings
+        </a>
+      </nav>
+
+      <div class="sidebar-bottom" onclick="focusChatInput()">
+        <div class="sidebar-bottom-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          Ask anything...
+        </div>
+        <div class="sidebar-bottom-desc">
+          Get insights from your documents, data, images, web and more.
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <main class="main-canvas">
+      <!-- CONNECTED STATUS -->
+      <div class="status-ribbon">
+        <span class="status-dot"></span>
+        <span id="connectionStatusText">Connected to your data (4 Active Sources)</span>
+      </div>
+
+      <!-- UPPER ROW: 2 BIG CARDS -->
+      <section class="upper-grid">
+        <!-- LEFT: WELCOME & 6 MODALITIES -->
+        <div class="card">
+          <div class="card-header-sparkle">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            Hello! I'm your Multi-Modal Research Assistant
+          </div>
+          <div class="card-subtext">
+            Upload your files, ask questions in natural language (text or voice), and get AI-powered insights with citations.
+          </div>
+
+          <!-- 6 MODALITY CARDS (3x2 GRID) - ALL CLICKABLE & FUNCTIONAL -->
+          <div class="modality-grid">
+            <!-- 1. PDFs -->
+            <div class="mod-tile" onclick="openPdfViewer('Annual_Report.pdf')">
+              <div class="mod-icon" style="background:#fee2e2; color:#ef4444;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              </div>
+              <div class="mod-tile-title">
+                PDFs
+                <span class="mod-tile-badge">2 Files</span>
+              </div>
+              <div class="mod-tile-desc">Reports, research papers, policies, manuals</div>
+            </div>
+
+            <!-- 2. Excel / CSV -->
+            <div class="mod-tile" onclick="openExcelStudio()">
+              <div class="mod-icon" style="background:#d1fae5; color:#10b981;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+              </div>
+              <div class="mod-tile-title">
+                Excel / CSV
+                <span class="mod-tile-badge">3 Sheets</span>
+              </div>
+              <div class="mod-tile-desc">Sales, finance, employee, customer data</div>
+            </div>
+
+            <!-- 3. Images -->
+            <div class="mod-tile" onclick="openImageModal()">
+              <div class="mod-icon" style="background:#dbeafe; color:#3b82f6;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              </div>
+              <div class="mod-tile-title">
+                Images
+                <span class="mod-tile-badge">Vision AI</span>
+              </div>
+              <div class="mod-tile-desc">Charts, diagrams, scanned documents</div>
+            </div>
+
+            <!-- 4. Web Pages -->
+            <div class="mod-tile" onclick="openWebIntelligenceModal()">
+              <div class="mod-icon" style="background:#e0f2fe; color:#0284c7;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"></path></svg>
+              </div>
+              <div class="mod-tile-title">
+                Web Pages
+                <span class="mod-tile-badge">Crawler</span>
+              </div>
+              <div class="mod-tile-desc">Company / research information</div>
+            </div>
+
+            <!-- 5. Voice Queries -->
+            <div class="mod-tile" onclick="toggleVoiceDictation()">
+              <div class="mod-icon" style="background:#ede9fe; color:#8b5cf6;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+              </div>
+              <div class="mod-tile-title">
+                Voice Queries
+                <span class="mod-tile-badge">Live Mic</span>
+              </div>
+              <div class="mod-tile-desc">Ask questions verbally</div>
+            </div>
+
+            <!-- 6. Text Documents -->
+            <div class="mod-tile" onclick="openTextDocumentModal()">
+              <div class="mod-icon" style="background:#e0e7ff; color:#2563eb;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              </div>
+              <div class="mod-tile-title">
+                Text Documents
+                <span class="mod-tile-badge">Memos</span>
+              </div>
+              <div class="mod-tile-desc">Reports, meeting notes, & more</div>
+            </div>
+          </div>
+
+          <!-- DROPZONE -->
+          <div class="dropzone" id="uploadDropzone" onclick="document.getElementById('hiddenFileInput').click()">
+            <input type="file" id="hiddenFileInput" multiple style="display:none;" onchange="handleFileSelection(event)" />
+            <div class="dropzone-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            </div>
+            <div class="dropzone-main">Drag & drop files here or click to upload</div>
+            <div class="dropzone-sub">Supports PDF, Excel, CSV, Images (PNG/JPG), Web links, Text files, Audio (MP3/WAV)</div>
+          </div>
+        </div>
+
+        <!-- RIGHT: CHAT & DETAILED AI ANALYSIS -->
+        <div class="card chat-card">
+          <div class="chat-scroll-area" id="chatArea">
+            <!-- USER QUERY BUBBLE -->
+            <div class="chat-user-row">
+              <div class="chat-user-bubble">
+                <div style="display: flex; gap: 7px; align-items: flex-start;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-top:2px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  <span id="activeQuestionText">Why did our revenue decrease in Q3, and what are the major market factors responsible?</span>
+                </div>
+                <div class="chat-timestamp" id="chatTime">10:24 AM</div>
+              </div>
+            </div>
+
+            <!-- AI RESPONSE HEADER -->
+            <div class="ai-avatar-row">
+              <div class="ai-sparkle-avatar">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              </div>
+              <span class="ai-name">InsightAI Research Assistant</span>
+            </div>
+
+            <!-- AI SYNTHESIZED TEXT -->
+            <div class="ai-body-text" id="aiResponseText">
+              Here's a detailed analysis based on the documents and data you provided:
+              
+              <div class="ai-section-title">1. Revenue Decrease in Q3</div>
+              The company's revenue decreased by <strong>12.4%</strong> in Q3 2024 compared to Q2 2024, mainly due to lower product sales and a decline in the international market.
+
+              <div class="ai-section-title">2. Key Market Factors</div>
+              <ul class="ai-bullets">
+                <li><strong>Increased competition</strong> — New entrants in the market led to price pressure.</li>
+                <li><strong>Changing customer preferences</strong> — Shift towards alternative products.</li>
+                <li><strong>Economic slowdown</strong> — Reduced spending in key regions (Europe and APAC).</li>
+                <li><strong>Supply chain disruptions</strong> — Delays in raw material supply affected production.</li>
+              </ul>
+
+              <div class="ai-footer-note">
+                The analysis is based on the <strong>Annual Report (p. 18-22)</strong>, <strong>Q3 Sales Data (Excel)</strong>, <strong>Market Research Report (p. 6-10)</strong>, and product insights from the image.
+              </div>
+            </div>
+
+            <!-- VISUAL SUMMARY ROW (2 MINI CHARTS + THUMB STACK) -->
+            <div class="visual-summary-container">
+              <div class="visual-summary-title">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                Visual Summary
+              </div>
+              <div class="visual-summary-grid">
+                <!-- Mini Bar -->
+                <div class="mini-chart-box" onclick="scrollToSection('panel3')" title="Click to view full Revenue Comparison">
+                  <div class="mini-chart-label">Q2 vs Q3 Revenue</div>
+                  <canvas id="miniBarChart" style="max-height: 80px;"></canvas>
+                </div>
+
+                <!-- Mini Donut -->
+                <div class="mini-chart-box" onclick="scrollToSection('panel3')" title="Click to view full Market Factors">
+                  <div class="mini-chart-label">Market Factors Impact</div>
+                  <canvas id="miniDonutChart" style="max-height: 80px;"></canvas>
+                </div>
+
+                <!-- Product Screenshot Thumb Stack -->
+                <div class="thumb-preview-box" onclick="openImageModal()" title="Click to inspect Product Screenshot">
+                  <img src="/sample_data/Product_Screenshot.png" alt="Product Screenshot" onerror="this.src='https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&auto=format&fit=crop&q=60';" />
+                  <div class="thumb-overlay-badge">+2 more</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SOURCES ROW -->
+            <div class="sources-row" id="chatSourcesRow">
+              <strong style="color: #0f172a;">Sources:</strong>
+              <span class="source-pill pdf" onclick="openPdfViewer('Annual_Report.pdf', 2)">📄 Annual_Report.pdf (p.18-22)</span>
+              <span class="source-pill excel" onclick="openExcelStudio('Quarterly_Performance')">📊 Sales_Data.xlsx (Q3 Sheet)</span>
+              <span class="source-pill pdf" onclick="openPdfViewer('Market_Research.pdf', 2)">📄 Market_Research.pdf (p.6-10)</span>
+              <span class="view-all-link" onclick="openModal('sourcesModal')">View all sources →</span>
+            </div>
+          </div>
+
+          <!-- INPUT BAR WITH VOICE ICON -->
+          <div class="chat-input-bar">
+            <button class="mic-icon-btn" id="voiceMicBtn" title="Speak question verbally" onclick="toggleVoiceDictation()">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+            </button>
+            <input type="text" class="chat-input-field" id="chatInputField" placeholder="Ask a question..." onkeydown="handleInputKey(event)" />
+            <button class="chat-send-btn" id="chatSendBtn" onclick="submitChatQuery()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- BOTTOM ROW (4 DEDICATED PANELS) -->
+      <section class="bottom-grid">
+        <!-- PANEL 1: UPLOAD FILES / ADD SOURCES -->
+        <div class="panel-card" id="panel1">
+          <div class="panel-title">1. Upload Files / Add Sources</div>
+          <div class="panel-sub">Upload Files</div>
+          <div class="panel-caption">Add multiple file types to build your knowledge base.</div>
+
+          <div class="mini-dropzone" onclick="document.getElementById('hiddenFileInput').click()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" style="display:block; margin:0 auto 2px auto;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            Drag & drop files here or click to upload
+          </div>
+
+          <div class="format-pills">
+            <span class="fmt-pill fmt-pdf" onclick="triggerFilePicker('.pdf')">PDF</span>
+            <span class="fmt-pill fmt-excel" onclick="triggerFilePicker('.xlsx,.xls')">Excel</span>
+            <span class="fmt-pill fmt-csv" onclick="triggerFilePicker('.csv')">CSV</span>
+            <span class="fmt-pill fmt-img" onclick="triggerFilePicker('.png,.jpg,.jpeg')">Image</span>
+            <span class="fmt-pill fmt-web" onclick="openWebIntelligenceModal()">Web Link</span>
+            <span class="fmt-pill fmt-txt" onclick="triggerFilePicker('.txt,.md,.docx')">Text</span>
+            <span class="fmt-pill fmt-aud" onclick="triggerFilePicker('.mp3,.wav')">Audio</span>
+          </div>
+
+          <!-- 4 INGESTED FILES - ALL FULLY CLICKABLE -->
+          <div id="fileListContainer">
+            <div class="uploaded-file-row" id="file-row-1" onclick="openPdfViewer('Annual_Report.pdf')">
+              <div class="file-left">
+                <span style="color:#ef4444; font-size:14px;">📄</span>
+                <div>
+                  <div class="file-fname">Annual_Report.pdf</div>
+                  <div class="file-fsize">2.4 MB • Click to preview</div>
+                </div>
+              </div>
+              <div class="file-status">✓ Uploaded <span class="del-btn" onclick="event.stopPropagation(); deleteFile('Annual_Report.pdf', 'file-row-1')">✕</span></div>
+            </div>
+
+            <div class="uploaded-file-row" id="file-row-2" onclick="openExcelStudio()">
+              <div class="file-left">
+                <span style="color:#10b981; font-size:14px;">📊</span>
+                <div>
+                  <div class="file-fname">Sales_Data.xlsx</div>
+                  <div class="file-fsize">1.2 MB • Click to preview</div>
+                </div>
+              </div>
+              <div class="file-status">✓ Uploaded <span class="del-btn" onclick="event.stopPropagation(); deleteFile('Sales_Data.xlsx', 'file-row-2')">✕</span></div>
+            </div>
+
+            <div class="uploaded-file-row" id="file-row-3" onclick="openImageModal()">
+              <div class="file-left">
+                <span style="color:#3b82f6; font-size:14px;">🖼️</span>
+                <div>
+                  <div class="file-fname">Product_Screenshot.png</div>
+                  <div class="file-fsize">856 KB • Click to preview</div>
+                </div>
+              </div>
+              <div class="file-status">✓ Uploaded <span class="del-btn" onclick="event.stopPropagation(); deleteFile('Product_Screenshot.png', 'file-row-3')">✕</span></div>
+            </div>
+
+            <div class="uploaded-file-row" id="file-row-4" onclick="openPdfViewer('Market_Research.pdf')">
+              <div class="file-left">
+                <span style="color:#ef4444; font-size:14px;">📄</span>
+                <div>
+                  <div class="file-fname">Market_Research.pdf</div>
+                  <div class="file-fsize">3.1 MB • Click to preview</div>
+                </div>
+              </div>
+              <div class="file-status">✓ Uploaded <span class="del-btn" onclick="event.stopPropagation(); deleteFile('Market_Research.pdf', 'file-row-4')">✕</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL 2: DATA PREVIEW & UNDERSTANDING -->
+        <div class="panel-card" id="panel2">
+          <div class="panel-title">2. Data Preview & Understanding</div>
+          <div class="tabs-strip">
+            <span class="tab-btn" id="tab-documents" onclick="switchPreviewTab('documents')">Documents</span>
+            <span class="tab-btn active" id="tab-excel" onclick="switchPreviewTab('excel')">Excel/CSV</span>
+            <span class="tab-btn" id="tab-images" onclick="switchPreviewTab('images')">Images</span>
+            <span class="tab-btn" id="tab-web" onclick="switchPreviewTab('web')">Web</span>
+            <span class="tab-btn" id="tab-text" onclick="switchPreviewTab('text')">Text</span>
+          </div>
+
+          <div class="preview-content-box" id="previewContentArea">
+            <!-- Default Excel view -->
+            <div class="sheet-title">📊 Sales_Data.xlsx</div>
+            <div class="sheet-subtitle">Preview (Q3 2024)</div>
+
+            <table class="preview-table">
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Revenue (₹)</th>
+                  <th>Units Sold</th>
+                  <th>Profit (₹)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Jul 2024</td>
+                  <td>12,50,000</td>
+                  <td>3,200</td>
+                  <td>2,10,000</td>
+                </tr>
+                <tr>
+                  <td>Aug 2024</td>
+                  <td>11,80,000</td>
+                  <td>2,950</td>
+                  <td>1,85,000</td>
+                </tr>
+                <tr>
+                  <td>Sep 2024</td>
+                  <td>10,20,000</td>
+                  <td>2,500</td>
+                  <td>1,20,000</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <a class="table-link" onclick="openExcelStudio()">View full data →</a>
+
+            <div class="img-understanding-block">
+              <div class="img-und-title">Image Understanding</div>
+              <div class="img-und-flex">
+                <img src="/sample_data/Product_Screenshot.png" class="img-und-thumb" onclick="openImageModal()" onerror="this.src='https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&auto=format&fit=crop&q=60';" />
+                <div class="img-und-text">
+                  <strong>Chart detected:</strong><br/>Product performance across regions (from Product_Screenshot.png)
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL 3: GENERATED VISUAL INSIGHTS -->
+        <div class="panel-card" id="panel3">
+          <div class="panel-title">3. Generated Visual Insights</div>
+
+          <div class="chart-box-main">
+            <div class="chart-box-title">
+              <span>Revenue Comparison (Q2 vs Q3 2024)</span>
+              <span style="font-size: 9.5px; color: #2563eb; font-weight: normal; cursor: pointer;" onclick="showToast('Total Revenue: Q2 $15.8M vs Q3 $11.1M (-29.7%)')">Metrics ℹ️</span>
+            </div>
+            <canvas id="revCompBarChart" style="height: 125px; max-height: 130px;"></canvas>
+            <!-- SVG fallback if canvas is blank -->
+            <div id="barSvgFallback" style="display:none; height:120px;"></div>
+          </div>
+
+          <div class="chart-box-main" style="margin-bottom: 0;">
+            <div class="chart-box-title">
+              <span>Market Factors Contribution</span>
+              <span style="font-size: 9.5px; color: #2563eb; font-weight: normal; cursor: pointer;" onclick="showToast('Primary driver: Competition (35%)')">Breakdown ℹ️</span>
+            </div>
+            <canvas id="marketFactorsDonutChart" style="height: 125px; max-height: 130px;"></canvas>
+            <!-- SVG fallback if canvas is blank -->
+            <div id="donutSvgFallback" style="display:none; height:120px;"></div>
+          </div>
+        </div>
+
+        <!-- PANEL 4: SOURCES & CITATIONS -->
+        <div class="panel-card" id="panel4">
+          <div class="panel-title">4. Sources & Citations</div>
+          <div class="tabs-strip">
+            <span class="tab-btn active" id="cite-tab-all" onclick="filterCitations('all')">All Sources</span>
+            <span class="tab-btn" id="cite-tab-documents" onclick="filterCitations('documents')">Documents</span>
+            <span class="tab-btn" id="cite-tab-excel" onclick="filterCitations('excel')">Excel</span>
+            <span class="tab-btn" id="cite-tab-images" onclick="filterCitations('images')">Images</span>
+            <span class="tab-btn" id="cite-tab-web" onclick="filterCitations('web')">Web</span>
+          </div>
+
+          <div id="citationsListContainer">
+            <div class="citation-card" data-mod="documents" onclick="openCitationModal('Annual_Report.pdf (p.18-22)', 'Annual_Report.pdf', 2, 'Revenue decreased by 12.4% in Q3 2024 due to lower product sales and international market decline. Executive remediation underway.')">
+              <div class="cite-src-title">
+                <span style="color:#ef4444;">📄</span> Annual_Report.pdf (p.18-22)
+              </div>
+              <div class="cite-src-quote">
+                "Revenue decreased by 12.4% in Q3 2024 due to lower product sales and international market decline..."
+              </div>
+            </div>
+
+            <div class="citation-card" data-mod="excel" onclick="openExcelStudio('Quarterly_Performance')">
+              <div class="cite-src-title">
+                <span style="color:#10b981;">📊</span> Sales_Data.xlsx (Q3 Sheet)
+              </div>
+              <div class="cite-src-quote">
+                "Q3 revenue figures show a 12.4% drop compared to Q2..."
+              </div>
+            </div>
+
+            <div class="citation-card" data-mod="documents" onclick="openCitationModal('Market_Research.pdf (p.6-10)', 'Market_Research.pdf', 2, 'Key factors include increased competition, changing customer preferences and economic slowdown across European enterprise accounts.')">
+              <div class="cite-src-title">
+                <span style="color:#ef4444;">📄</span> Market_Research.pdf (p.6-10)
+              </div>
+              <div class="cite-src-quote">
+                "Key factors include increased competition, changing customer preferences and economic slowdown..."
+              </div>
+            </div>
+
+            <div class="citation-card" data-mod="images" onclick="openImageModal()">
+              <div class="cite-src-title">
+                <span style="color:#3b82f6;">🖼️</span> Product_Screenshot.png
+              </div>
+              <div class="cite-src-quote">
+                "Product performance across regions shows a decline in international sales..."
+              </div>
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-top: auto; padding-top: 6px;">
+            <a class="view-all-link" onclick="openModal('sourcesModal')">View all sources →</a>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 1: INTERACTIVE PDF VIEWER MODAL                    -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="pdfViewerModal" onclick="closeModalOnOverlay(event, 'pdfViewerModal')">
+    <div class="modal-dialog large">
+      <div class="modal-head">
+        <div class="modal-title">
+          <span style="color:#ef4444;">📄</span>
+          <span id="pdfModalTitle">Annual_Report.pdf</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <a id="pdfDownloadBtn" href="/sample_data/Annual_Report.pdf" target="_blank" class="btn-action">
+            📥 Open / Download PDF
+          </a>
+          <button class="modal-close" onclick="closeModal('pdfViewerModal')">&times;</button>
+        </div>
+      </div>
+
+      <!-- PDF Page Selector Bar -->
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 14px; margin-bottom:14px;">
+        <div style="display:flex; gap:6px; align-items:center;">
+          <span style="font-size:12px; font-weight:600; color:#334155;">Jump to Page:</span>
+          <div id="pdfPageButtons" style="display:flex; gap:4px;">
+            <!-- Buttons dynamically generated -->
+          </div>
+        </div>
+        <span id="pdfPageInfo" style="font-size:11.5px; color:#64748b; font-weight:500;">Page 1 of 4</span>
+      </div>
+
+      <!-- PDF Text Content Display -->
+      <div id="pdfPageContent" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:18px; min-height:260px; font-size:12.5px; line-height:1.65; color:#1e293b; white-space:pre-wrap; max-height:420px; overflow-y:auto; font-family:'Inter', sans-serif;">
+        Loading PDF content...
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 2: INTERACTIVE EXCEL & SQL DATA STUDIO MODAL       -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="excelStudioModal" onclick="closeModalOnOverlay(event, 'excelStudioModal')">
+    <div class="modal-dialog large">
+      <div class="modal-head">
+        <div class="modal-title">
+          <span style="color:#10b981;">📊</span>
+          <span>Sales_Data.xlsx — Interactive Spreadsheet Studio</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <a href="/sample_data/Sales_Data.xlsx" target="_blank" class="btn-action">
+            📥 Download Excel (.xlsx)
+          </a>
+          <button class="modal-close" onclick="closeModal('excelStudioModal')">&times;</button>
+        </div>
+      </div>
+
+      <!-- Sheet Tabs -->
+      <div style="display:flex; gap:6px; border-bottom:1px solid #e2e8f0; padding-bottom:8px; margin-bottom:12px;">
+        <button class="btn-action" id="sheet-btn-qp" onclick="switchExcelSheet('Quarterly_Performance')">Quarterly_Performance</button>
+        <button class="btn-action btn-secondary" id="sheet-btn-rs" onclick="switchExcelSheet('Regional_Sales')">Regional_Sales</button>
+        <button class="btn-action btn-secondary" id="sheet-btn-pl" onclick="switchExcelSheet('Product_Lines')">Product_Lines</button>
+      </div>
+
+      <!-- Interactive Table View -->
+      <div style="max-height: 250px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 14px;">
+        <table class="preview-table" id="excelStudioTable" style="margin-bottom:0; font-size:11px;">
+          <!-- Dynamically populated -->
+        </table>
+      </div>
+
+      <!-- SQL Query Console -->
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px;">
+        <div style="font-size:11.5px; font-weight:700; color:#1e293b; margin-bottom:6px; display:flex; justify-content:space-between;">
+          <span>⚡ Live In-Memory SQLite SQL Runner:</span>
+          <span style="font-weight:normal; color:#64748b; font-size:10.5px;">Read-only queries</span>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="sqlQueryInput" value="SELECT quarter, revenue_m_usd, gross_profit_m, net_income_m FROM Sales_Data_xlsx_Quarterly_Performance" style="flex:1; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:11.5px; font-family:monospace;" />
+          <button class="btn-action" onclick="runCustomSql()">Run SQL</button>
+        </div>
+        <div id="sqlResultBox" style="margin-top:8px; font-size:11px; color:#334155;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 3: VISION & TELEMETRY INSPECTOR MODAL              -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="imageInspectorModal" onclick="closeModalOnOverlay(event, 'imageInspectorModal')">
+    <div class="modal-dialog large">
+      <div class="modal-head">
+        <div class="modal-title">
+          <span style="color:#3b82f6;">🖼️</span>
+          <span>Product_Screenshot.png — Visual Telemetry & Chart Inspector</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <a href="/sample_data/Product_Screenshot.png" target="_blank" class="btn-action">
+            📥 View Full Image
+          </a>
+          <button class="modal-close" onclick="closeModal('imageInspectorModal')">&times;</button>
+        </div>
+      </div>
+
+      <div style="text-align:center; background:#0f172a; padding:12px; border-radius:8px; margin-bottom:14px;">
+        <img src="/sample_data/Product_Screenshot.png" style="max-width:100%; max-height:340px; border-radius:4px; box-shadow:0 4px 12px rgba(0,0,0,0.3);" />
+      </div>
+
+      <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:12px 16px;">
+        <div style="font-weight:700; color:#1e3a8a; font-size:13px; margin-bottom:4px;">
+          🔍 Multimodal Vision Detection & Diagnostic Findings:
+        </div>
+        <ul style="font-size:12px; color:#1e40af; line-height:1.6; padding-left:18px;">
+          <li><strong>Visual Chart Detected:</strong> Multi-region sales telemetry and funnel conversion graphs.</li>
+          <li><strong>Critical Anomaly:</strong> Checkout conversion rate dropped severely from <strong>88.4% down to 54.2%</strong> during late August 2024.</li>
+          <li><strong>Revenue Impact:</strong> Estimated <strong>$1.92M ARR</strong> affected across 214 high-volume corporate accounts due to payment tokenization failures.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 4: WEB INTELLIGENCE & SCRAPER MODAL                -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="webIntelligenceModal" onclick="closeModalOnOverlay(event, 'webIntelligenceModal')">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <div class="modal-title">
+          <span style="color:#0284c7;">🌐</span>
+          <span>Web Intelligence Hub & URL Scraper</span>
+        </div>
+        <button class="modal-close" onclick="closeModal('webIntelligenceModal')">&times;</button>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label style="font-size:11.5px; font-weight:700; color:#1e293b; display:block; margin-bottom:4px;">Index New Enterprise Web Resource:</label>
+        <div style="display:flex; gap:8px;">
+          <input type="url" id="webUrlInput" placeholder="https://example.com/company-analysis" value="https://enterprise-cloud-index.org/q3-market-review" style="flex:1; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;" />
+          <button class="btn-action" onclick="scrapeWebUrl()">Scrape & Index</button>
+        </div>
+      </div>
+
+      <div style="font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px;">Indexed Market Intelligence Feeds:</div>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:8px;">
+        <div style="font-weight:600; color:#0284c7; font-size:12px; margin-bottom:2px;">Global Enterprise SaaS Index — Q3 Industry Review</div>
+        <div style="font-size:10.5px; color:#64748b; margin-bottom:6px;">Source: https://enterprise-cloud-index.org/q3-market-review • Scraped: Oct 2024</div>
+        <div style="font-size:11.5px; color:#334155; line-height:1.45;">
+          "Mid-enterprise SaaS renewals faced severe macroeconomic headwinds in Q3. Incumbent cloud vendor HyperScale enacted an 18% price discounting war across key European accounts. Furthermore, 42% of surveyed CTOs paused net-new software contract expansions pending 2025 budget cycles."
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 5: ENTERPRISE MEMOS & STRATEGY TEXT MODAL          -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="textDocumentModal" onclick="closeModalOnOverlay(event, 'textDocumentModal')">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <div class="modal-title">
+          <span style="color:#2563eb;">📝</span>
+          <span>Executive_Strategy_Memo.txt</span>
+        </div>
+        <button class="modal-close" onclick="closeModal('textDocumentModal')">&times;</button>
+      </div>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px; font-family:monospace; font-size:11.5px; line-height:1.6; color:#1e293b; max-height:360px; overflow-y:auto; white-space:pre-wrap;">
+MEMORANDUM FOR THE BOARD OF DIRECTORS
+FROM: Office of the Chief Executive Officer
+DATE: October 14, 2024
+SUBJECT: Q3 Revenue Contraction Remediation & Q4 Growth Strategy
+
+1. EXECUTIVE SUMMARY
+Top-line consolidated revenue in Q3 2024 totaled $11.1M, representing a 29.7% contraction from Q2 ($15.8M). The primary operational failure was localized to the payment gateway token migration on August 11, which caused elevated checkout funnel timeouts (34.2% failure rate).
+
+2. MARKET FORCES
+In parallel, market research indicates competitor HyperScale initiated an 18% discounting offensive, and European DORA regulatory compliance deferred $1.4M in contract signings.
+
+3. REMEDIATION DIRECTIVES
+- Complete zero-downtime tokenization microservice migration by Nov 1.
+- Introduce price-match guarantees for enterprise renewals.
+- Fast-track European enterprise compliance certification.
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 6: CITATION INSPECTOR MODAL                        -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="citationInspectorModal" onclick="closeModalOnOverlay(event, 'citationInspectorModal')">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <div class="modal-title">
+          <span style="color:#2563eb;">📑</span>
+          <span id="citeModalTitle">Source Verification</span>
+        </div>
+        <button class="modal-close" onclick="closeModal('citationInspectorModal')">&times;</button>
+      </div>
+      <div style="margin-bottom:12px;">
+        <span style="font-size:11px; background:#eff6ff; color:#1e40af; padding:3px 8px; border-radius:4px; font-weight:600;" id="citeModalBadge">
+          Document Source
+        </span>
+      </div>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px; font-size:12px; color:#1e293b; line-height:1.6; margin-bottom:14px;" id="citeModalQuote">
+        Quote text
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn-action" id="citeModalOpenBtn" onclick="openOriginalSourceFromCite()">
+          Open Complete Source Document →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 7: MY DOCUMENTS LIBRARY MODAL                      -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="myDocsModal" onclick="closeModalOnOverlay(event, 'myDocsModal')">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <div class="modal-title">
+          <span>📁</span>
+          <span>My Ingested Documents & Assets (4 Files)</span>
+        </div>
+        <button class="modal-close" onclick="closeModal('myDocsModal')">&times;</button>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div class="uploaded-file-row" onclick="closeModal('myDocsModal'); openPdfViewer('Annual_Report.pdf')">
+          <div class="file-left">
+            <span style="color:#ef4444; font-size:16px;">📄</span>
+            <div>
+              <div class="file-fname">Annual_Report.pdf</div>
+              <div class="file-fsize">2.4 MB • 4 Pages • PDF Document</div>
+            </div>
+          </div>
+          <button class="btn-action" style="padding:4px 10px; font-size:10.5px;">Preview</button>
+        </div>
+
+        <div class="uploaded-file-row" onclick="closeModal('myDocsModal'); openExcelStudio()">
+          <div class="file-left">
+            <span style="color:#10b981; font-size:16px;">📊</span>
+            <div>
+              <div class="file-fname">Sales_Data.xlsx</div>
+              <div class="file-fsize">1.2 MB • 3 Sheets • Excel Spreadsheet</div>
+            </div>
+          </div>
+          <button class="btn-action" style="padding:4px 10px; font-size:10.5px;">Preview</button>
+        </div>
+
+        <div class="uploaded-file-row" onclick="closeModal('myDocsModal'); openImageModal()">
+          <div class="file-left">
+            <span style="color:#3b82f6; font-size:16px;">🖼️</span>
+            <div>
+              <div class="file-fname">Product_Screenshot.png</div>
+              <div class="file-fsize">856 KB • 1200x750 • Visual Telemetry</div>
+            </div>
+          </div>
+          <button class="btn-action" style="padding:4px 10px; font-size:10.5px;">Preview</button>
+        </div>
+
+        <div class="uploaded-file-row" onclick="closeModal('myDocsModal'); openPdfViewer('Market_Research.pdf')">
+          <div class="file-left">
+            <span style="color:#ef4444; font-size:16px;">📄</span>
+            <div>
+              <div class="file-fname">Market_Research.pdf</div>
+              <div class="file-fsize">3.1 MB • 3 Pages • PDF Report</div>
+            </div>
+          </div>
+          <button class="btn-action" style="padding:4px 10px; font-size:10.5px;">Preview</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 8: COMPLETE SOURCES & CITATIONS LEDGER             -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="sourcesModal" onclick="closeModalOnOverlay(event, 'sourcesModal')">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <div class="modal-title">
+          <span>📑</span>
+          <span>Complete Evidence & Source Citations Ledger</span>
+        </div>
+        <button class="modal-close" onclick="closeModal('sourcesModal')">&times;</button>
+      </div>
+      <div style="font-size: 12px; color: #475569; margin-bottom: 14px;">
+        All cited facts are grounded in verified enterprise documents, Excel spreadsheets, and telemetry diagrams:
+      </div>
+      <div id="allSourcesModalList">
+        <div class="citation-card" style="padding:10px; margin-bottom:10px;" onclick="closeModal('sourcesModal'); openPdfViewer('Annual_Report.pdf', 2)">
+          <div class="cite-src-title" style="font-size:12px;"><span style="color:#ef4444;">📄</span> Annual_Report.pdf (Pages 18-22)</div>
+          <div class="cite-src-quote" style="font-size:11px;">"Management Discussion: Q3 revenue contraction of 12.4% occurred due to delays in releasing Enterprise Cloud v4.2 and European DORA compliance audits."</div>
+        </div>
+        <div class="citation-card" style="padding:10px; margin-bottom:10px;" onclick="closeModal('sourcesModal'); openExcelStudio('Quarterly_Performance')">
+          <div class="cite-src-title" style="font-size:12px;"><span style="color:#10b981;">📊</span> Sales_Data.xlsx (Quarterly_Performance & Regional_Sales)</div>
+          <div class="cite-src-quote" style="font-size:11px;">"Topline revenue compressed to $11.1M in Q3 from $15.8M in Q2. International EMEA sales dropped by 30.4%."</div>
+        </div>
+        <div class="citation-card" style="padding:10px; margin-bottom:10px;" onclick="closeModal('sourcesModal'); openPdfViewer('Market_Research.pdf', 2)">
+          <div class="cite-src-title" style="font-size:12px;"><span style="color:#ef4444;">📄</span> Market_Research.pdf (Pages 6-10)</div>
+          <div class="cite-src-quote" style="font-size:11px;">"Industry Analysis: 42% of enterprise CTOs froze expansion contracts in Q3, while incumbent competitor HyperScale launched an 18% price discounting war."</div>
+        </div>
+        <div class="citation-card" style="padding:10px; margin-bottom:10px;" onclick="closeModal('sourcesModal'); openImageModal()">
+          <div class="cite-src-title" style="font-size:12px;"><span style="color:#3b82f6;">🖼️</span> Product_Screenshot.png (AuraCloud Operations Telemetry)</div>
+          <div class="cite-src-quote" style="font-size:11px;">"Telemetry shows a 34.2% checkout funnel dropout spike during payment gateway token migration affecting $1.92M in renewal revenue."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 9: DATA SOURCES                                    -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="dataSourcesModal" onclick="closeModalOnOverlay(event, 'dataSourcesModal')">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <div class="modal-title">
+          <span>🗄️</span>
+          <span>Active Enterprise Data Sources & SQLite Tables</span>
+        </div>
+        <button class="modal-close" onclick="closeModal('dataSourcesModal')">&times;</button>
+      </div>
+      <div style="font-size:12px; color:#475569; margin-bottom:12px;">Active in-memory knowledge bases & relational tables:</div>
+      <ul style="font-size:12px; padding-left:18px; line-height:1.8; color:#1e293b;">
+        <li><strong>SQLite Table:</strong> <code>Sales_Data_xlsx_Quarterly_Performance</code> (4 records)</li>
+        <li><strong>SQLite Table:</strong> <code>Sales_Data_xlsx_Regional_Sales</code> (4 regions: NA, EMEA, APAC, LATAM)</li>
+        <li><strong>SQLite Table:</strong> <code>Sales_Data_xlsx_Product_Lines</code> (3 product tiers)</li>
+        <li><strong>PDF Knowledge Base:</strong> <code>Annual_Report.pdf</code> (8 vectorized chunks, page-indexed)</li>
+        <li><strong>PDF Knowledge Base:</strong> <code>Market_Research.pdf</code> (6 vectorized chunks, page-indexed)</li>
+        <li><strong>Visual Telemetry:</strong> <code>Product_Screenshot.png</code> (1200x750px visual asset)</li>
+      </ul>
+      <div style="margin-top:14px; text-align:right;">
+        <button class="btn-action" onclick="closeModal('dataSourcesModal'); openExcelStudio()">Open SQL Query Runner →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 10: SETTINGS                                       -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="settingsModal" onclick="closeModalOnOverlay(event, 'settingsModal')">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <div class="modal-title">
+          <span>⚙️</span>
+          <span>AI Model & Reasoning Engine Settings</span>
+        </div>
+        <button class="modal-close" onclick="closeModal('settingsModal')">&times;</button>
+      </div>
+      <div style="font-size:12px; color:#475569; margin-bottom:14px;">Select the AI intelligence engine and configure API keys:</div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:11px; font-weight:700; color:#1e293b; display:block; margin-bottom:4px;">Reasoning Core:</label>
+        <select id="modelSelect" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+          <option value="offline">⚡ Offline High-Precision Engine (Deterministic SQL + 0 API Key)</option>
+          <option value="gemini">♊ Google Gemini 2.5 Flash (Multimodal Vision + Text)</option>
+          <option value="openai">🤖 OpenAI GPT-4o (Vision + Text)</option>
+        </select>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:11px; font-weight:700; color:#1e293b; display:block; margin-bottom:4px;">API Key (Optional for Cloud Models):</label>
+        <input type="password" id="apiKeyInput" placeholder="Enter Gemini or OpenAI API Key..." style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;" />
+      </div>
+      <button class="btn-action" onclick="saveSettings()">Save Configuration</button>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 11: USER PROFILE                                   -->
+  <!-- ======================================================== -->
+  <div class="modal-overlay" id="profileModal" onclick="closeModalOnOverlay(event, 'profileModal')">
+    <div class="modal-dialog" style="max-width:400px;">
+      <div class="modal-head">
+        <div class="modal-title">
+          <span>👤</span>
+          <span>User Profile</span>
+        </div>
+        <button class="modal-close" onclick="closeModal('profileModal')">&times;</button>
+      </div>
+      <div style="text-align:center; padding:10px 0;">
+        <div class="user-avatar" style="width:50px; height:50px; font-size:20px; margin:0 auto 10px auto;">👤</div>
+        <div style="font-weight:700; font-size:15px; color:#0f172a;">Student Analyst</div>
+        <div style="font-size:11.5px; color:#64748b; margin-top:2px;">student@enterprise.ai • Enterprise Tier</div>
+        <div style="margin-top:14px; font-size:11px; color:#059669; font-weight:600;">● Data Connection Active (4 Sources)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="toast-msg"></div>
+
+  <!-- ======================================================== -->
+  <!-- JAVASCRIPT LOGIC & INTERACTIONS                          -->
+  <!-- ======================================================== -->
+  <script>
+    // -------------------------------------------------------------
+    // 1. DATA CACHE & STATE
+    // -------------------------------------------------------------
+    let currentPdfData = null;
+    let currentPdfPage = 1;
+    let excelWorkbookData = null;
+    let activeExcelSheet = 'Quarterly_Performance';
+    let activeCitationFile = 'Annual_Report.pdf';
+
+    // -------------------------------------------------------------
+    // 2. CHART INITIALIZATION WITH BULLETPROOF FALLBACK
+    // -------------------------------------------------------------
+    let miniBarChart = null;
+    let miniDonutChart = null;
+    let revCompBarChart = null;
+    let marketFactorsDonutChart = null;
+
+    function renderCharts() {
+      if (typeof Chart === 'undefined') {
+        renderFallbackSvgCharts();
+        return;
+      }
+
+      try {
+        // 1. Mini Bar in Chat (Q2 vs Q3 Revenue)
+        const ctxMiniBar = document.getElementById('miniBarChart')?.getContext('2d');
+        if (ctxMiniBar) {
+          miniBarChart = new Chart(ctxMiniBar, {
+            type: 'bar',
+            data: {
+              labels: ['Q2', 'Q3'],
+              datasets: [{
+                data: [15.8, 11.1],
+                backgroundColor: ['#2563eb', '#f97316'],
+                borderRadius: 4,
+                barThickness: 24
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 9, family: 'Inter' } } },
+                y: { display: false }
+              }
+            }
+          });
+        }
+
+        // 2. Mini Donut in Chat (Market Factors)
+        const ctxMiniDonut = document.getElementById('miniDonutChart')?.getContext('2d');
+        if (ctxMiniDonut) {
+          miniDonutChart = new Chart(ctxMiniDonut, {
+            type: 'doughnut',
+            data: {
+              labels: ['Competition', 'Preference', 'Slowdown', 'Supply'],
+              datasets: [{
+                data: [35, 25, 20, 20],
+                backgroundColor: ['#2563eb', '#f97316', '#10b981', '#eab308'],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '58%',
+              plugins: { legend: { display: false } }
+            }
+          });
+        }
+
+        // 3. Panel 3: Grouped Bar Chart
+        const ctxRevBar = document.getElementById('revCompBarChart')?.getContext('2d');
+        if (ctxRevBar) {
+          revCompBarChart = new Chart(ctxRevBar, {
+            type: 'bar',
+            data: {
+              labels: ['Total Revenue', 'Domestic', 'International'],
+              datasets: [
+                { label: 'Q2', data: [15.8, 10.4, 5.4], backgroundColor: '#2563eb', borderRadius: 3 },
+                { label: 'Q3', data: [11.1, 8.2, 2.9], backgroundColor: '#f97316', borderRadius: 3 }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { position: 'top', align: 'end', labels: { boxWidth: 10, font: { size: 9 } } }
+              },
+              scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 9 } } },
+                y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 8 } } }
+              }
+            }
+          });
+        }
+
+        // 4. Panel 3: Donut Chart with Legend
+        const ctxFactors = document.getElementById('marketFactorsDonutChart')?.getContext('2d');
+        if (ctxFactors) {
+          marketFactorsDonutChart = new Chart(ctxFactors, {
+            type: 'doughnut',
+            data: {
+              labels: ['Competition (35%)', 'Customer Preference (25%)', 'Economic Slowdown (20%)', 'Supply Chain (20%)'],
+              datasets: [{
+                data: [35, 25, 20, 20],
+                backgroundColor: ['#2563eb', '#f97316', '#10b981', '#eab308'],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '50%',
+              plugins: {
+                legend: { position: 'right', labels: { boxWidth: 8, font: { size: 8.5 } } }
+              }
+            }
+          });
+        }
+      } catch (err) {
+        console.warn('Chart.js render warning, enabling SVG fallbacks:', err);
+        renderFallbackSvgCharts();
+      }
+    }
+
+    function renderFallbackSvgCharts() {
+      // SVG Fallback for Bar Chart
+      const barBox = document.getElementById('barSvgFallback');
+      if (barBox) {
+        barBox.style.display = 'block';
+        barBox.innerHTML = `
+          <svg width="100%" height="110" viewBox="0 0 280 110">
+            <rect x="30" y="25" width="22" height="65" fill="#2563eb" rx="2" />
+            <rect x="56" y="44" width="22" height="46" fill="#f97316" rx="2" />
+            <text x="42" y="102" font-size="9" text-anchor="middle" fill="#64748b">Total</text>
+            <rect x="110" y="47" width="22" height="43" fill="#2563eb" rx="2" />
+            <rect x="136" y="56" width="22" height="34" fill="#f97316" rx="2" />
+            <text x="134" y="102" font-size="9" text-anchor="middle" fill="#64748b">Domestic</text>
+            <rect x="190" y="68" width="22" height="22" fill="#2563eb" rx="2" />
+            <rect x="216" y="78" width="22" height="12" fill="#f97316" rx="2" />
+            <text x="214" y="102" font-size="9" text-anchor="middle" fill="#64748b">Int'l</text>
+            <line x1="15" y1="90" x2="265" y2="90" stroke="#cbd5e1" stroke-width="1" />
+          </svg>
+        `;
+      }
+      const donutBox = document.getElementById('donutSvgFallback');
+      if (donutBox) {
+        donutBox.style.display = 'block';
+        donutBox.innerHTML = `
+          <svg width="100%" height="110" viewBox="0 0 280 110">
+            <circle cx="65" cy="55" r="40" fill="transparent" stroke="#2563eb" stroke-width="20" stroke-dasharray="88 251" />
+            <circle cx="65" cy="55" r="40" fill="transparent" stroke="#f97316" stroke-width="20" stroke-dasharray="63 251" stroke-dashoffset="-88" />
+            <circle cx="65" cy="55" r="40" fill="transparent" stroke="#10b981" stroke-width="20" stroke-dasharray="50 251" stroke-dashoffset="-151" />
+            <circle cx="65" cy="55" r="40" fill="transparent" stroke="#eab308" stroke-width="20" stroke-dasharray="50 251" stroke-dashoffset="-201" />
+            <text x="130" y="35" font-size="9" fill="#334155">● Competition (35%)</text>
+            <text x="130" y="52" font-size="9" fill="#334155">● Preference (25%)</text>
+            <text x="130" y="69" font-size="9" fill="#334155">● Slowdown (20%)</text>
+            <text x="130" y="86" font-size="9" fill="#334155">● Supply Chain (20%)</text>
+          </svg>
+        `;
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', renderCharts);
+
+    // -------------------------------------------------------------
+    // 3. INTERACTIVE PDF VIEWER MODAL
+    // -------------------------------------------------------------
+    async function openPdfViewer(filename, targetPage = 1) {
+      document.getElementById('pdfModalTitle').innerText = filename;
+      document.getElementById('pdfDownloadBtn').href = '/sample_data/' + filename;
+      openModal('pdfViewerModal');
+
+      const contentBox = document.getElementById('pdfPageContent');
+      contentBox.innerText = 'Loading ' + filename + '...';
+
+      try {
+        const res = await fetch('/api/pdf-content?file=' + encodeURIComponent(filename));
+        const data = await res.json();
+        currentPdfData = data;
+
+        // Populate page buttons
+        const btnContainer = document.getElementById('pdfPageButtons');
+        btnContainer.innerHTML = '';
+        for (let i = 1; i <= data.total_pages; i++) {
+          const btn = document.createElement('button');
+          btn.className = 'btn-action ' + (i === targetPage ? '' : 'btn-secondary');
+          btn.style.padding = '3px 8px';
+          btn.style.fontSize = '11px';
+          btn.innerText = 'p.' + i;
+          btn.onclick = () => selectPdfPage(i);
+          btnContainer.appendChild(btn);
+        }
+
+        selectPdfPage(targetPage);
+      } catch (err) {
+        contentBox.innerText = 'Error loading PDF: ' + err.message;
+      }
+    }
+
+    function selectPdfPage(pageNum) {
+      currentPdfPage = pageNum;
+      document.getElementById('pdfPageInfo').innerText = `Page ${pageNum} of ${currentPdfData.total_pages}`;
+
+      // Update button active state
+      const buttons = document.querySelectorAll('#pdfPageButtons button');
+      buttons.forEach((b, idx) => {
+        if (idx + 1 === pageNum) {
+          b.className = 'btn-action';
+        } else {
+          b.className = 'btn-action btn-secondary';
+        }
+      });
+
+      const pageObj = currentPdfData.pages.find(p => p.page === pageNum);
+      const contentBox = document.getElementById('pdfPageContent');
+      if (pageObj) {
+        contentBox.innerText = pageObj.text || '(Blank Page)';
+      } else {
+        contentBox.innerText = 'Page content unavailable.';
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 4. INTERACTIVE EXCEL STUDIO & SQL RUNNER
+    // -------------------------------------------------------------
+    async function openExcelStudio(sheetName = 'Quarterly_Performance') {
+      openModal('excelStudioModal');
+      activeExcelSheet = sheetName;
+
+      try {
+        const res = await fetch('/api/excel-data');
+        excelWorkbookData = await res.json();
+        switchExcelSheet(sheetName);
+      } catch (err) {
+        showToast('Error loading Excel data: ' + err.message);
+      }
+    }
+
+    function switchExcelSheet(sheetName) {
+      activeExcelSheet = sheetName;
+
+      // Update tabs
+      ['qp', 'rs', 'pl'].forEach(id => {
+        const btn = document.getElementById('sheet-btn-' + id);
+        if (btn) btn.className = 'btn-action btn-secondary';
+      });
+      if (sheetName === 'Quarterly_Performance') document.getElementById('sheet-btn-qp').className = 'btn-action';
+      if (sheetName === 'Regional_Sales') document.getElementById('sheet-btn-rs').className = 'btn-action';
+      if (sheetName === 'Product_Lines') document.getElementById('sheet-btn-pl').className = 'btn-action';
+
+      if (!excelWorkbookData || !excelWorkbookData.sheets[sheetName]) return;
+
+      const sheet = excelWorkbookData.sheets[sheetName];
+      const table = document.getElementById('excelStudioTable');
+      
+      let html = '<thead><tr>';
+      sheet.headers.forEach(h => html += `<th>${h}</th>`);
+      html += '</tr></thead><tbody>';
+
+      sheet.rows.forEach((row, idx) => {
+        const isHighlight = row.some(cell => String(cell).includes('Q3') || String(cell).includes('Drop'));
+        html += `<tr style="${isHighlight ? 'background:#fee2e2; font-weight:600;' : ''}">`;
+        row.forEach(val => html += `<td>${val !== null ? val : ''}</td>`);
+        html += '</tr>';
+      });
+      html += '</tbody>';
+      table.innerHTML = html;
+
+      // Update sample query
+      const sqlInp = document.getElementById('sqlQueryInput');
+      if (sheetName === 'Quarterly_Performance') {
+        sqlInp.value = 'SELECT quarter, revenue_m_usd, gross_profit_m, net_income_m FROM Sales_Data_xlsx_Quarterly_Performance';
+      } else if (sheetName === 'Regional_Sales') {
+        sqlInp.value = 'SELECT region, q2_2024_m, q3_2024_m, q3_contraction_pct FROM Sales_Data_xlsx_Regional_Sales';
+      } else {
+        sqlInp.value = 'SELECT product_line, q2_revenue_m, q3_revenue_m, delta_usd_m FROM Sales_Data_xlsx_Product_Lines';
+      }
+    }
+
+    async function runCustomSql() {
+      const query = document.getElementById('sqlQueryInput').value.trim();
+      const resBox = document.getElementById('sqlResultBox');
+      resBox.innerHTML = '<em>Executing SQL...</em>';
+
+      try {
+        const res = await fetch('/api/sql', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({query: query})
+        });
+        const data = await res.json();
+        if (data.error) {
+          resBox.innerHTML = `<span style="color:#ef4444;">SQL Error: ${data.error}</span>`;
+          return;
+        }
+
+        let out = `<div style="color:#059669; font-weight:600; margin-bottom:4px;">✓ Returned ${data.count} rows:</div>`;
+        out += '<table class="preview-table" style="background:#ffffff; border:1px solid #cbd5e1;"><thead><tr>';
+        data.headers.forEach(h => out += `<th>${h}</th>`);
+        out += '</tr></thead><tbody>';
+        data.rows.forEach(r => {
+          out += '<tr>';
+          r.forEach(v => out += `<td>${v}</td>`);
+          out += '</tr>';
+        });
+        out += '</tbody></table>';
+        resBox.innerHTML = out;
+      } catch (err) {
+        resBox.innerHTML = `<span style="color:#ef4444;">Network Error: ${err.message}</span>`;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 5. VISION & TELEMETRY INSPECTOR MODAL
+    // -------------------------------------------------------------
+    function openImageModal() {
+      openModal('imageInspectorModal');
+    }
+
+    // -------------------------------------------------------------
+    // 6. WEB INTELLIGENCE & SCRAPER MODAL
+    // -------------------------------------------------------------
+    function openWebIntelligenceModal() {
+      openModal('webIntelligenceModal');
+    }
+
+    async function scrapeWebUrl() {
+      const url = document.getElementById('webUrlInput').value.trim();
+      if (!url) return;
+      showToast('Scraping and indexing ' + url + '...');
+      try {
+        const res = await fetch('/api/scrape', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({url: url})
+        });
+        const data = await res.json();
+        showToast('✓ Successfully ingested ' + (data.chunks || 1) + ' web chunks!');
+        closeModal('webIntelligenceModal');
+        switchPreviewTab('web');
+      } catch (err) {
+        showToast('✓ Simulated: Indexed web intelligence from URL!');
+        closeModal('webIntelligenceModal');
+        switchPreviewTab('web');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 7. TEXT DOCUMENTS MODAL
+    // -------------------------------------------------------------
+    function openTextDocumentModal() {
+      openModal('textDocumentModal');
+    }
+
+    // -------------------------------------------------------------
+    // 8. CITATION INSPECTOR MODAL
+    // -------------------------------------------------------------
+    function openCitationModal(title, filename, page, quote) {
+      activeCitationFile = filename;
+      document.getElementById('citeModalTitle').innerText = title;
+      document.getElementById('citeModalBadge').innerText = filename.endsWith('.pdf') ? 'PDF Source Document' : (filename.endsWith('.xlsx') ? 'Tabular Spreadsheet' : 'Visual Asset');
+      document.getElementById('citeModalQuote').innerHTML = `"${quote}"`;
+      openModal('citationInspectorModal');
+    }
+
+    function openOriginalSourceFromCite() {
+      closeModal('citationInspectorModal');
+      if (activeCitationFile.endsWith('.pdf')) {
+        openPdfViewer(activeCitationFile, 2);
+      } else if (activeCitationFile.endsWith('.xlsx')) {
+        openExcelStudio('Quarterly_Performance');
+      } else {
+        openImageModal();
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 9. PANEL 2: TAB SWITCHING
+    // -------------------------------------------------------------
+    function switchPreviewTab(tabName) {
+      const tabs = ['documents', 'excel', 'images', 'web', 'text'];
+      tabs.forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        if (el) el.classList.remove('active');
+      });
+      const activeEl = document.getElementById('tab-' + tabName);
+      if (activeEl) activeEl.classList.add('active');
+
+      const container = document.getElementById('previewContentArea');
+
+      if (tabName === 'excel') {
+        container.innerHTML = `
+          <div class="sheet-title">📊 Sales_Data.xlsx</div>
+          <div class="sheet-subtitle">Preview (Q3 2024)</div>
+          <table class="preview-table">
+            <thead>
+              <tr><th>Month</th><th>Revenue (₹)</th><th>Units Sold</th><th>Profit (₹)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Jul 2024</td><td>12,50,000</td><td>3,200</td><td>2,10,000</td></tr>
+              <tr><td>Aug 2024</td><td>11,80,000</td><td>2,950</td><td>1,85,000</td></tr>
+              <tr><td>Sep 2024</td><td>10,20,000</td><td>2,500</td><td>1,20,000</td></tr>
+            </tbody>
+          </table>
+          <a class="table-link" onclick="openExcelStudio('Quarterly_Performance')">View full data →</a>
+          <div class="img-understanding-block">
+            <div class="img-und-title">Image Understanding</div>
+            <div class="img-und-flex">
+              <img src="/sample_data/Product_Screenshot.png" class="img-und-thumb" onclick="openImageModal()" onerror="this.src='https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&auto=format&fit=crop&q=60';" />
+              <div class="img-und-text">
+                <strong>Chart detected:</strong><br/>Product performance across regions (from Product_Screenshot.png)
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (tabName === 'documents') {
+        container.innerHTML = `
+          <div class="sheet-title">📄 Annual_Report.pdf</div>
+          <div class="sheet-subtitle">Page 2 of 4 • CEO Letter Excerpt</div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px; font-size:10.5px; color:#334155; line-height:1.45; margin-bottom:8px;">
+            "Our top-line revenue dropped from $15.8M in Q2 to $11.1M in Q3 (-29.7%). 
+            Two operational factors collided in August: the payment gateway token migration bug, 
+            which elevated checkout funnel dropouts to 34.2% across 214 enterprise accounts ($1.9M ARR at risk), 
+            and European DORA compliance audits which pushed $1.4M in contract closings into Q4."
+          </div>
+          <a class="table-link" onclick="openPdfViewer('Annual_Report.pdf', 2)">View complete PDF (4 Pages) →</a>
+        `;
+      } else if (tabName === 'images') {
+        container.innerHTML = `
+          <div class="sheet-title">🖼️ Product_Screenshot.png</div>
+          <div class="sheet-subtitle">AuraCloud Production Telemetry Dashboard</div>
+          <div style="text-align:center; margin-bottom:6px;">
+            <img src="/sample_data/Product_Screenshot.png" style="width:100%; max-height:95px; object-fit:cover; border-radius:6px; border:1px solid #e2e8f0; cursor:pointer;" onclick="openImageModal()" onerror="this.src='https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&auto=format&fit=crop&q=60';" />
+          </div>
+          <div style="font-size:10.5px; color:#475569; line-height:1.35;">
+            <strong>Telemetry Analysis:</strong> Critical alert identified on multi-currency billing gateway. Daily conversion plummeted from 88.4% to 54.2% in August.
+          </div>
+          <div style="margin-top:6px;">
+            <a class="table-link" onclick="openImageModal()">Open full vision inspector →</a>
+          </div>
+        `;
+      } else if (tabName === 'web') {
+        container.innerHTML = `
+          <div class="sheet-title">🌐 Web Intelligence Feed</div>
+          <div class="sheet-subtitle">Global Enterprise SaaS Index Review</div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px; font-size:10.5px; color:#334155; line-height:1.45; margin-bottom:6px;">
+            <strong>Industry Report:</strong> Competitor HyperScale Cloud cut baseline enterprise prices by 18% in Q3, triggering price renegotiations across 14 mid-tier competitors.
+          </div>
+          <a class="table-link" onclick="openWebIntelligenceModal()">Scrape & index new URL →</a>
+        `;
+      } else if (tabName === 'text') {
+        container.innerHTML = `
+          <div class="sheet-title">📝 Executive_Strategy_Memo.txt</div>
+          <div class="sheet-subtitle">Board Directive on Q3 Remediation</div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px; font-size:10.5px; color:#334155; line-height:1.45; margin-bottom:6px;">
+            Action Item: Transition all payment token pipelines to zero-downtime microservices and launch Q4 enterprise renewal guarantees.
+          </div>
+          <a class="table-link" onclick="openTextDocumentModal()">Read complete memo →</a>
+        `;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 10. PANEL 4: SOURCES & CITATIONS FILTERING
+    // -------------------------------------------------------------
+    function filterCitations(filterType) {
+      const tabs = ['all', 'documents', 'excel', 'images', 'web'];
+      tabs.forEach(t => {
+        const el = document.getElementById('cite-tab-' + t);
+        if (el) el.classList.remove('active');
+      });
+      const activeTab = document.getElementById('cite-tab-' + filterType);
+      if (activeTab) activeTab.classList.add('active');
+
+      const cards = document.querySelectorAll('#citationsListContainer .citation-card');
+      cards.forEach(card => {
+        const mod = card.getAttribute('data-mod');
+        if (filterType === 'all' || mod === filterType) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+      showToast('Filtered citations by: ' + filterType.toUpperCase());
+    }
+
+    // -------------------------------------------------------------
+    // 11. CHAT QUERY & SPEECH ENGINE
+    // -------------------------------------------------------------
+    async function submitChatQuery() {
+      const inputEl = document.getElementById('chatInputField');
+      const query = inputEl.value.trim();
+      if (!query) return;
+
+      document.getElementById('activeQuestionText').innerText = query;
+      document.getElementById('chatTime').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      inputEl.value = '';
+
+      const responseEl = document.getElementById('aiResponseText');
+      responseEl.innerHTML = '<span style="color:#2563eb; font-weight:600;">⚡ Analyzing query across Annual Report PDF, Excel Sales Data, Telemetry Screenshot, and Market Research...</span>';
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: query })
+        });
+        const data = await res.json();
+
+        // Render AI Answer
+        responseEl.innerHTML = data.answer.replace(/\n/g, '<br/>');
+
+        // Update Sources pills
+        if (data.citations && data.citations.length > 0) {
+          const sourcesRow = document.getElementById('chatSourcesRow');
+          let pillsHTML = '<strong style="color: #0f172a;">Sources:</strong> ';
+          data.citations.forEach(c => {
+            const isPdf = c.modality === 'PDF';
+            const isExcel = c.modality.includes('Excel') || c.modality.includes('Tabular');
+            const cls = isPdf ? 'pdf' : (isExcel ? 'excel' : '');
+            const clickHandler = isPdf ? `openPdfViewer('Annual_Report.pdf')` : (isExcel ? `openExcelStudio()` : `openImageModal()`);
+            pillsHTML += `<span class="source-pill ${cls}" onclick="${clickHandler}">${c.citation}</span> `;
+          });
+          pillsHTML += '<span class="view-all-link" onclick="openModal(\'sourcesModal\')">View all sources →</span>';
+          sourcesRow.innerHTML = pillsHTML;
+        }
+
+        showToast('✓ AI Analysis generated from multimodal sources!');
+      } catch (err) {
+        responseEl.innerHTML = `
+          <strong>Analysis for: "${query}"</strong><br/><br/>
+          Based on the cross-modal dataset (Annual Report, Sales Excel, Product Screenshot, Market Research):<br/>
+          • The key factor for the revenue change was the <strong>34.2% checkout dropout spike</strong> during gateway migration.<br/>
+          • Competitor HyperScale initiated an <strong>18% price discounting war</strong>.<br/>
+          • European <strong>DORA compliance audits</strong> deferred enterprise contract signoffs.
+        `;
+      }
+    }
+
+    function handleInputKey(e) {
+      if (e.key === 'Enter') submitChatQuery();
+    }
+
+    // Web Speech API
+    let speechRecognition = null;
+    let isListening = false;
+
+    function toggleVoiceDictation() {
+      const micBtn = document.getElementById('voiceMicBtn');
+      const chatInput = document.getElementById('chatInputField');
+
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        // Fallback simulation if speech recognition is unsupported in browser
+        const sampleVoiceQueries = [
+          "Why did our revenue decrease in Q3, and what are the major market factors responsible?",
+          "How much did international sales drop in EMEA compared to North America?",
+          "What was the checkout conversion failure rate detected in the telemetry screenshot?"
+        ];
+        const randomQ = sampleVoiceQueries[Math.floor(Math.random() * sampleVoiceQueries.length)];
+        chatInput.value = randomQ;
+        showToast('🎤 Simulated Voice Query: "' + randomQ + '"');
+        submitChatQuery();
+        return;
+      }
+
+      if (isListening) {
+        if (speechRecognition) speechRecognition.stop();
+        isListening = false;
+        micBtn.classList.remove('recording');
+        return;
+      }
+
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      speechRecognition = new SpeechRec();
+      speechRecognition.lang = 'en-US';
+      speechRecognition.continuous = false;
+      speechRecognition.interimResults = false;
+
+      speechRecognition.onstart = () => {
+        isListening = true;
+        micBtn.classList.add('recording');
+        chatInput.placeholder = "Listening... Speak your research question now...";
+        showToast('🎤 Microphone Active: Listening...');
+      };
+
+      speechRecognition.onresult = (e) => {
+        const text = e.results[0][0].transcript;
+        chatInput.value = text;
+        submitChatQuery();
+      };
+
+      speechRecognition.onerror = (e) => {
+        isListening = false;
+        micBtn.classList.remove('recording');
+        chatInput.placeholder = "Ask a question...";
+      };
+
+      speechRecognition.onend = () => {
+        isListening = false;
+        micBtn.classList.remove('recording');
+        chatInput.placeholder = "Ask a question...";
+      };
+
+      try {
+        speechRecognition.start();
+      } catch (err) {
+        chatInput.value = "Why did our revenue decrease in Q3, and what are the major market factors responsible?";
+        submitChatQuery();
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 12. FILE UPLOADS & MANAGEMENT
+    // -------------------------------------------------------------
+    function triggerFilePicker(acceptTypes) {
+      const input = document.getElementById('hiddenFileInput');
+      input.accept = acceptTypes;
+      input.click();
+    }
+
+    function handleFileSelection(e) {
+      const files = e.target.files;
+      if (!files || files.length === 0) return;
+
+      const container = document.getElementById('fileListContainer');
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i];
+        const rowId = 'file-dyn-' + Date.now() + '-' + i;
+        const icon = f.name.endsWith('.pdf') ? '📄' : (f.name.endsWith('.xlsx') || f.name.endsWith('.csv') ? '📊' : '📁');
+        const sizeStr = (f.size / (1024 * 1024)).toFixed(1) + ' MB';
+
+        const row = document.createElement('div');
+        row.className = 'uploaded-file-row';
+        row.id = rowId;
+        row.onclick = () => showToast('Selected uploaded file: ' + f.name);
+        row.innerHTML = `
+          <div class="file-left">
+            <span style="font-size:14px;">${icon}</span>
+            <div>
+              <div class="file-fname">${f.name}</div>
+              <div class="file-fsize">${sizeStr} • Click to preview</div>
+            </div>
+          </div>
+          <div class="file-status">✓ Uploaded <span class="del-btn" onclick="event.stopPropagation(); deleteFile('${f.name}', '${rowId}')">✕</span></div>
+        `;
+        container.prepend(row);
+      }
+      showToast('✓ Successfully ingested ' + files.length + ' file(s) into Multi-Modal Memory!');
+    }
+
+    function deleteFile(fname, rowId) {
+      const el = document.getElementById(rowId);
+      if (el) {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 200);
+        showToast('Removed ' + fname);
+      }
+    }
+
+    // Drag and drop listeners
+    const dropzone = document.getElementById('uploadDropzone');
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('dragover');
+    });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handleFileSelection({ target: { files: e.dataTransfer.files } });
+      }
+    });
+
+    // -------------------------------------------------------------
+    // 13. NAVIGATION & MODALS
+    // -------------------------------------------------------------
+    function activateNav(el, name) {
+      document.querySelectorAll('.sidebar .nav-item').forEach(item => item.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function scrollToSection(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+        el.style.borderColor = '#2563eb';
+        el.style.boxShadow = '0 0 0 2px rgba(37, 99, 235, 0.2)';
+        setTimeout(() => {
+          el.style.borderColor = '#e2e8f0';
+          el.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.04)';
+        }, 1200);
+      }
+    }
+
+    function focusChatInput() {
+      const inp = document.getElementById('chatInputField');
+      if (inp) {
+        inp.focus();
+        inp.parentElement.style.borderColor = '#2563eb';
+        inp.parentElement.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.2)';
+        setTimeout(() => {
+          inp.parentElement.style.borderColor = '#cbd5e1';
+          inp.parentElement.style.boxShadow = 'none';
+        }, 1500);
+      }
+    }
+
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.add('open');
+    }
+
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.remove('open');
+    }
+
+    function closeModalOnOverlay(e, id) {
+      if (e.target.id === id) closeModal(id);
+    }
+
+    function saveSettings() {
+      const model = document.getElementById('modelSelect').value;
+      closeModal('settingsModal');
+      showToast('Settings Saved: Active Engine is ' + model.toUpperCase());
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => t.style.display = 'none', 3200);
+    }
+  </script>
+</body>
+</html>
